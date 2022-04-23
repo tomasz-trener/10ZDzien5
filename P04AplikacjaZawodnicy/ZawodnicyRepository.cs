@@ -11,6 +11,8 @@ namespace P04AplikacjaZawodnicy
 
         public Zawodnik[] WczytajZawodnikow()
         {
+           
+
             PolaczenieZBaza pzb = new PolaczenieZBaza();
             object[][] wynik= pzb.WyslijPolecenieSQL("select id_zawodnika, id_trenera, imie, nazwisko, kraj, data_ur, wzrost, waga from zawodnicy");
 
@@ -22,12 +24,18 @@ namespace P04AplikacjaZawodnicy
             {
                 Zawodnik ityZawodnik = new Zawodnik();
                 ityZawodnik.Id = (int)wynik[i][0];
-                ityZawodnik.IdTrenera = (int)wynik[i][1];
+               
+                if(wynik[i][1] != DBNull.Value) // wartosc null w bazie danych to co innego niz null w programie w c# 
+                    ityZawodnik.IdTrenera = (int)wynik[i][1];
+                 
                 ityZawodnik.Imie = (string)wynik[i][2];
                 ityZawodnik.Nazwisko = (string)wynik[i][3];
                 ityZawodnik.Kraj = (string)wynik[i][4];
                 ityZawodnik.DataUr = (DateTime)wynik[i][5];
-                ityZawodnik.Wzrost = (int)wynik[i][6];
+
+                if (wynik[i][6] != DBNull.Value)
+                    ityZawodnik.Wzrost = (int)wynik[i][6];
+               
                 ityZawodnik.Waga = (int)wynik[i][7];
 
                 zawodnicy[i] = ityZawodnik;

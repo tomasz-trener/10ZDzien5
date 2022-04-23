@@ -10,11 +10,13 @@ namespace P04AplikacjaZawodnicy
     {
         public int Id;
         public int IdTrenera;
-        public string Imie;
+        public string Imie; // klasy są nullable to znaczy , ze one juz odrazu moga pzryjmowac wartosci null
         public string Nazwisko;
         public string Kraj;
-        public DateTime DataUr;
-        public int Wzrost;
-        public int Waga;
+        public DateTime DataUr; // domysla wartosc Datetime rok 0 mieisc 0 dzien 1 , godz 0 min 0 sek 0 
+        public int? Wzrost; // dodanie ? powoduje, ze wzrost moze byc null i jednoczesnie domyslna wartoscia wzrostu jest null
+        public int Waga; // w tym monmencie gdy nie ma ? to waga nie moze byc null i domylsna wartosc to 0 
+
+        public bool Plec; // domylsa wartosc to false 
     }
 }
