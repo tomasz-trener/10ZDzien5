@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace P04AplikacjaZawodnicy
+namespace P06AplikacjaTypuWPF
 {
     static class Program
     {
