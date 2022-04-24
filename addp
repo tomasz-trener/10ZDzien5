@@ -1,0 +1,242 @@
+using P07BibliotekaZawodnicyRepository;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace P02AplikacjaZawodnicy
+{
+    public partial class Form1 : Form
+    {
+        Zawodnik aktualnieZaznaczony;
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void Odswiez()
+        {
+            ZawodnicyRepository zr = new ZawodnicyRepository();
+
+            Zawodnik[] zawodnicy = zr.PobierzZawodnikow();
+
+            // proste wyświetlenie danych
+            //foreach (var z in zawodnicy)
+            //{
+            //    lbDane.Items.Add(z.Imie + " " + z.Nazwisko);
+            //}
+
+            lbDane.DataSource = zawodnicy;
+            lbDane.DisplayMember = "ImieNazwisko";
+        }
+
+        private void btnWczytaj_Click(object sender, EventArgs e)
+        {
+            Odswiez();
+        }
+
+        private void lbDane_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (aktualnieZaznaczony != null && aktualnieZaznaczony.ZmienionePola.Count > 0)
+            {
+               DialogResult dr =
+               MessageBox.Show($"Rekord {aktualnieZaznaczony.ImieNazwisko} został zmieniony. Czy chcesz wyjsc z edycji?", "Pytanie", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (!(dr == DialogResult.Yes))
+                    return;
+            }
+
+            aktualnieZaznaczony =  (Zawodnik)lbDane.SelectedItem;
+             
+            txtID.Text = aktualnieZaznaczony.Id_zawodnika.ToString();
+            txtImie.Text = aktualnieZaznaczony.Imie;
+            txtNazwisko.Text = aktualnieZaznaczony.Nazwisko;
+            txtKraj.Text = aktualnieZaznaczony.Kraj;
+            dtpDataUrodzenia.Value = aktualnieZaznaczony.DataUrodzenia;
+            numWaga.Value = aktualnieZaznaczony.Waga;
+            numWzrost.Value = aktualnieZaznaczony.Wzrost;
+
+            aktualnieZaznaczony.ZmienionePola = new List<string>();
+            txtImie.BackColor = Color.White;
+            //lbDane.Enabled = true;
+
+        }
+
+        private void btnZapisz_Click(object sender, EventArgs e)
+        {
+          //  MessageBox.Show("Hej");
+          
+            Zawodnik z = (Zawodnik)lbDane.SelectedItem;
+
+            DialogResult dr=
+                MessageBox.Show($"Czy chcesz zapisac rekord {z.ImieNazwisko} ? Zmienione pola: {string.Join(" ",aktualnieZaznaczony.ZmienionePola)}", "Pytanie", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (!(dr == DialogResult.Yes))
+            {
+                lbDane.Enabled = true;
+                return;
+            }
+            z.Imie = txtImie.Text;
+            z.Nazwisko= txtNazwisko.Text;
+            z.Kraj = txtKraj.Text;
+            z.DataUrodzenia = dtpDataUrodzenia.Value;
+            z.Waga = Convert.ToInt32(numWaga.Value);
+            z.Wzrost = Convert.ToInt32(numWzrost.Value);
+
+            ZawodnicyRepository zr = new ZawodnicyRepository();
+            zr.Edytuj(z);
+            Odswiez();
+            aktualnieZaznaczony.ZmienionePola = new List<string>();
+            lbDane.Enabled = true;
+        }
+
+        private void txtImie_TextChanged(object sender, EventArgs e)
+        {
+            aktualnieZaznaczony.ZmienionePola.Add("Imie");
+            txtImie.BackColor = Color.Red;
+            lbDane.Enabled = false;
+        }
+
+        private void txtNazwisko_TextChanged(object sender, EventArgs e)
+        {
+            aktualnieZaznaczony.ZmienionePola.Add("Nazwisko");
+            lbDane.Enabled = false;
+        }
+        List<Zawodnik> compareList;
+        private void button1_Click(object sender, EventArgs e)
+        {
+            ZawodnicyRepository zr = new ZawodnicyRepository();
+            compareList = zr.PobierzZawodnikow().ToList();
+            dataGridView1.DataSource= compareList;
+
+            dataGridView2.ColumnCount = 1;
+            dataGridView2.Rows.Add("a");
+
+
+           
+             
+        }
+
+        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            var row = (Zawodnik)dataGridView1.Rows[e.RowIndex].DataBoundItem;
+
+            var a = (Zawodnik[])dataGridView1.DataSource;
+        }
+
+
+        private void dataGridView1_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+
+            string strColumnName = dataGridView1.Columns[e.ColumnIndex].Name;
+            SortOrder strSortOrder = getSortOrder(e.ColumnIndex);
+
+            if (strSortOrder == SortOrder.Ascending)
+            {
+                compareList = compareList.OrderBy(x => typeof(Zawodnik).GetProperty(strColumnName).GetValue(x, null)).ToList();
+            }
+            else
+            {
+                compareList = compareList.OrderByDescending(x => typeof(Zawodnik).GetProperty(strColumnName).GetValue(x, null)).ToList();
+            }
+            dataGridView1.DataSource = compareList;
+            dataGridView1.Columns[e.ColumnIndex].HeaderCell.SortGlyphDirection = strSortOrder;
+        }
+
+        private SortOrder getSortOrder(int columnIndex)
+        {
+            if (dataGridView1.Columns[columnIndex].HeaderCell.SortGlyphDirection == SortOrder.None ||
+                dataGridView1.Columns[columnIndex].HeaderCell.SortGlyphDirection == SortOrder.Descending)
+            {
+                dataGridView1.Columns[columnIndex].HeaderCell.SortGlyphDirection = SortOrder.Ascending;
+                return SortOrder.Ascending;
+            }
+            else
+            {
+                dataGridView1.Columns[columnIndex].HeaderCell.SortGlyphDirection = SortOrder.Descending;
+                return SortOrder.Descending;
+            }
+        }
+
+        public class CompareInfo
+        {
+            public string FileName { get; set; }
+
+            public string UAT_Folder { get; set; }
+
+            public string UAT_Path
+            {
+                get { return UAT_Folder + FileName; }
+            }
+
+            public string PROD_Folder { get; set; }
+
+            public string PROD_Path
+            {
+                get { return PROD_Folder + FileName; }
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            // listBox1.Items.AddRange(new object[] { "one", "two", "three" });
+            ZawodnicyRepository zr = new ZawodnicyRepository();
+            listBox1.DataSource = zr.PobierzZawodnikow();
+            listBox1.DisplayMember = "Imie";
+            listBox2.DisplayMember = "Imie";
+
+            listBox1.MouseDown += new MouseEventHandler(listBox1_MouseDown);
+            listBox1.MouseMove += new MouseEventHandler(listBox1_MouseMove);
+           
+            listBox2.AllowDrop = true;
+            listBox2.DragEnter += new DragEventHandler(listBox2_DragEnter);
+            listBox2.DragDrop += new DragEventHandler(listBox2_DragDrop);
+        }
+        private Point mDownPos;
+        void listBox1_MouseDown(object sender, MouseEventArgs e)
+        {
+            mDownPos = e.Location;
+        }
+        void listBox1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+            int index = listBox1.IndexFromPoint(e.Location);
+            if (index < 0) return;
+            if (Math.Abs(e.X - mDownPos.X) >= SystemInformation.DragSize.Width ||
+                Math.Abs(e.Y - mDownPos.Y) >= SystemInformation.DragSize.Height)
+                DoDragDrop(new DragObject(listBox1, listBox1.Items[index]), DragDropEffects.Move);
+        }
+
+        void listBox2_DragEnter(object sender, DragEventArgs e)
+        {
+            DragObject obj = e.Data.GetData(typeof(DragObject)) as DragObject;
+            if (obj != null && obj.source != listBox2) e.Effect = e.AllowedEffect;
+        }
+        void listBox2_DragDrop(object sender, DragEventArgs e)//
+        {
+            DragObject obj = e.Data.GetData(typeof(DragObject)) as DragObject;
+            listBox2.Items.Add(obj.item);
+
+            var a = (Zawodnik[])listBox1.DataSource;
+            a = a.Where(x => x.Id_zawodnika != ((Zawodnik)obj.item).Id_zawodnika).ToArray();
+            listBox1.DataSource = null;
+            listBox1.DataSource = a;
+            listBox1.DisplayMember = "Imie";
+
+          //  obj.source.Items.Remove(obj.item);
+        }
+
+        private class DragObject
+        {
+            public ListBox source;
+            public object item;
+            public DragObject(ListBox box, object data) { source = box; item = data; }
+        }
+    }
+}
